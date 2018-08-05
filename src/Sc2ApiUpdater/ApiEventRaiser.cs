@@ -61,6 +61,8 @@ namespace Sc2ApiUpdater
             }
             catch (HttpRequestException)
             {
+                RaiseApiObjectChanged(null);
+                current = null;
             }
             catch (ObjectDisposedException)
             {
