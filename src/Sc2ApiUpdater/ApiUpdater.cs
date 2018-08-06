@@ -53,7 +53,7 @@ namespace Sc2ApiUpdater
 
             if (calls.HasFlag(ApiCalls.Game))
             {
-                var eventRaiser = new ApiEventRaiser<GameObject>(uiRequest, timeoutSeconds);
+                var eventRaiser = new ApiEventRaiser<GameObject>(gameRequest, timeoutSeconds);
                 eventRaiser.ApiObjectChanged += RaiseGameChanged;
                 eventRaisers.Add(eventRaiser);
             }
