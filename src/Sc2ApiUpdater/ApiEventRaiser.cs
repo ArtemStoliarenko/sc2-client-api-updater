@@ -49,7 +49,7 @@ namespace Sc2ApiUpdater
                     if (resultStream.Length != 0)
                     {
                         var serializer = new DataContractJsonSerializer(typeof(T));
-                        newValue = (T)serializer.ReadObject(resultStream);
+                        newValue = serializer.ReadObject(resultStream) as T;
                     }
 
                     if (newValue != current)
