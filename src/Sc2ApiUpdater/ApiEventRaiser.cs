@@ -15,7 +15,7 @@ namespace Sc2ApiUpdater
 
         private readonly Uri fullUri;
 
-        private T current;
+        private T currentApiObject;
 
         private bool disposed = false;
 
@@ -42,39 +42,11 @@ namespace Sc2ApiUpdater
             if (disposed)
                 throw new ObjectDisposedException(nameof(ApiEventRaiser<T>));
 
-            try
+            T newApiObject = await GetApiObject();
+            if (!(currentApiObject?.Equals(newApiObject) ?? currentApiObject == newApiObject))
             {
-                using (var httpStream = await httpClient.GetStreamAsync(fullUri))
-                using (var resultStream = new MemoryStream())
-                {
-                    T newValue = null;
-
-                    await httpStream.CopyToAsync(resultStream);
-                    if (resultStream.Length != 0)
-                    {
-                        resultStream.Position = 0;
-                        var serializer = new DataContractJsonSerializer(typeof(T));
-                        newValue = serializer.ReadObject(resultStream) as T;
-                    }
-
-                    if (!(current?.Equals(newValue) ?? current == newValue))
-                    {
-                        RaiseApiObjectChanged(newValue);
-                        current = newValue;
-                    }
-                }
-            }
-            catch (HttpRequestException)
-            {
-                if (current != null)
-                {
-                    RaiseApiObjectChanged(null);
-                    current = null;
-                }
-            }
-            catch (Exception)
-            {
-
+                currentApiObject = newApiObject;
+                RaiseApiObjectChanged(currentApiObject);
             }
         }
 
@@ -84,6 +56,32 @@ namespace Sc2ApiUpdater
             {
                 httpClient.Dispose();
                 disposed = true;
+            }
+        }
+
+        private async Task<T> GetApiObject()
+        {
+            try
+            {
+                using (var httpStream = await httpClient.GetStreamAsync(fullUri))
+                using (var resultStream = new MemoryStream())
+                {
+                    await httpStream.CopyToAsync(resultStream);
+                    if (resultStream.Length != 0)
+                    {
+                        resultStream.Position = 0;
+                        var serializer = new DataContractJsonSerializer(typeof(T));
+                        return serializer.ReadObject(resultStream) as T;
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
+            catch (HttpRequestException)
+            {
+                return null;
             }
         }
 
