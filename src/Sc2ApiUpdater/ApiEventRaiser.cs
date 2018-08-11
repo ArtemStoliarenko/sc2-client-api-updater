@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
@@ -43,16 +44,20 @@ namespace Sc2ApiUpdater
 
             try
             {
-                using (var resultStream = await httpClient.GetStreamAsync(fullUri))
+                using (var httpStream = await httpClient.GetStreamAsync(fullUri))
+                using (var resultStream = new MemoryStream())
                 {
                     T newValue = null;
+
+                    await httpStream.CopyToAsync(resultStream);
                     if (resultStream.Length != 0)
                     {
                         var serializer = new DataContractJsonSerializer(typeof(T));
+                        resultStream.Position = 0;
                         newValue = serializer.ReadObject(resultStream) as T;
                     }
 
-                    if (newValue != current)
+                    if (!newValue.Equals(current))
                     {
                         RaiseApiObjectChanged(newValue);
                         current = newValue;
@@ -61,11 +66,15 @@ namespace Sc2ApiUpdater
             }
             catch (HttpRequestException)
             {
-                RaiseApiObjectChanged(null);
-                current = null;
+                if (current != null)
+                {
+                    RaiseApiObjectChanged(null);
+                    current = null;
+                }
             }
-            catch (ObjectDisposedException)
+            catch (Exception)
             {
+
             }
         }
 
