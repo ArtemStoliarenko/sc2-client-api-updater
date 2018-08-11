@@ -57,7 +57,7 @@ namespace Sc2ApiUpdater
                         newValue = serializer.ReadObject(resultStream) as T;
                     }
 
-                    if (!newValue.Equals(current))
+                    if (!(current?.Equals(newValue) ?? current == newValue))
                     {
                         RaiseApiObjectChanged(newValue);
                         current = newValue;
