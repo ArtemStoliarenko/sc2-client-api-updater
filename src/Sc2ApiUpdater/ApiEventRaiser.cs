@@ -52,8 +52,8 @@ namespace Sc2ApiUpdater
                     await httpStream.CopyToAsync(resultStream);
                     if (resultStream.Length != 0)
                     {
-                        var serializer = new DataContractJsonSerializer(typeof(T));
                         resultStream.Position = 0;
+                        var serializer = new DataContractJsonSerializer(typeof(T));
                         newValue = serializer.ReadObject(resultStream) as T;
                     }
 
